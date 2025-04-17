@@ -1,0 +1,43 @@
+# Byte-compiled / cached
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Entorno virtual de Python
+venv/
+env/
+ev_ppda/
+*.egg-info/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Archivos de configuración y credenciales
+.env
+*.secret
+
+# Archivos de migraciones que no sean necesarios
+*/migrations/*.pyc
+*/migrations/*.py, !*/migrations/__init__.py
+
+# Archivos de logs
+logs/
+*.log
+*.out
+*.err
+
+# Archivos de caché
+.DS_Store
+*.swp
+*.swo
+*.swn
+*.bak
+
+# Archivos de IDEs y editores
+.idea/
+.vscode/
+*.iml
+
+# PyCharm
+*.pydevproject
+.project
+.metadata

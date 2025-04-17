@@ -1,0 +1,404 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Plan de Descontaminación | Concón, Quinteros y Puchuncaví{% endblock %}
+
+{% block content %}
+<!-- Hero Section con video o imagen de fondo -->
+<div class="hero-section position-relative d-flex align-items-center" style="min-height: 70vh; background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1567095761054-7a02e69e5c43?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80') center/cover no-repeat; color: white;">
+    <div class="container py-5">
+        <div class="row">
+            <div class="col-lg-8">
+                <h1 class="display-3 fw-bold mb-3">Plan de Descontaminación</h1>
+                <h2 class="display-5 mb-4">Concón, Quinteros y Puchuncaví</h2>
+                <p class="lead mb-4">Trabajando juntos por un futuro más limpio y saludable para nuestras comunidades.</p>
+                <div class="d-flex gap-3 mb-5">
+                    <a href="#avance" class="btn btn-primary btn-lg px-4 py-2">Ver avance</a>
+                    <a href="#componentes" class="btn btn-outline-light btn-lg px-4 py-2">Explorar componentes</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Indicador de scroll -->
+    <div class="scroll-indicator position-absolute bottom-0 start-50 translate-middle-x mb-4">
+        <a href="#avance" class="text-white">
+            <i class="bi bi-chevron-down" style="font-size: 2rem;"></i>
+        </a>
+    </div>
+</div>
+
+<!-- Sección de estadísticas clave -->
+<section id="avance" class="stats-section py-5 bg-light">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="display-4 mb-3">Avance del Plan</h2>
+            <p class="lead">Monitoreo en tiempo real del progreso de nuestro plan de descontaminación</p>
+        </div>
+
+        <!-- Avance global con círculo animado -->
+        <div class="row align-items-center mb-5">
+            <div class="col-md-6 text-center">
+                <div class="progress-circle mx-auto position-relative" style="width: 240px; height: 240px;">
+                    <svg viewBox="0 0 36 36" class="circular-chart">
+                        <path class="circle-bg" d="M18 2.0845
+                            a 15.9155 15.9155 0 0 1 0 31.831
+                            a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#eee" stroke-width="2.5"/>
+                        <path class="circle" stroke-dasharray="{{ avance_global }}, 100" d="M18 2.0845
+                            a 15.9155 15.9155 0 0 1 0 31.831
+                            a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#38b000" stroke-width="2.5"/>
+                        <text x="18" y="20.35" class="percentage">{{ avance_global|floatformat:1 }}%</text>
+                    </svg>
+                    <div class="progress-label position-absolute top-100 start-50 translate-middle mt-2 w-100">
+                        <span class="badge bg-success px-3 py-2 rounded-pill fs-6">Avance Global</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="stats-cards row g-3">
+                    <div class="col-6">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-body text-center">
+                                <h5 class="card-title text-muted mb-1">Total Medidas</h5>
+                                <p class="display-5 fw-bold mb-0">{{ total_medidas }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% for estado in estados %}
+                    <div class="col-6">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-body text-center">
+                                <h5 class="card-title text-muted mb-1">{{ estado.estado|title }}</h5>
+                                <p class="display-5 fw-bold mb-0">{{ estado.total }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Componentes del plan -->
+<section id="componentes" class="components-section py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="display-4 mb-3">Componentes del Plan</h2>
+            <p class="lead">Conoce las diferentes áreas de trabajo para mejorar nuestro entorno</p>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-8 mb-4">
+                <canvas id="componentesChart" height="300"></canvas>
+            </div>
+            <div class="col-lg-4 mb-4 d-flex align-items-center">
+                <div>
+                    <h3 class="mb-3">Distribución por Componente</h3>
+                    <p>El Plan de Descontaminación está estructurado en componentes temáticos que abordan diferentes aspectos de la calidad ambiental en Concón, Quinteros y Puchuncaví.</p>
+                    <p>Cada componente contiene medidas específicas con plazos y responsables definidos.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4 mt-2">
+            {% for componente in componentes %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 border-0 shadow-sm component-card">
+                    <div class="card-header" style="background-color: {{ componente.color|default:'#38b000' }};">
+                        <h3 class="text-white mb-0 py-2">{{ componente.nombre }}</h3>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text">{{ componente.descripcion|truncatewords:25 }}</p>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span class="fw-bold">Avance:</span>
+                            <span class="badge bg-primary rounded-pill">{{ componente.avance_promedio|floatformat:1 }}%</span>
+                        </div>
+                        <div class="progress mb-3" style="height: 10px;">
+                            <div class="progress-bar" role="progressbar" style="width: {{ componente.avance_promedio|floatformat:0 }}%; background-color: {{ componente.color|default:'#38b000' }};"
+                                aria-valuenow="{{ componente.avance_promedio|floatformat:0 }}" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Medidas: {{ componente.total_medidas }}</span>
+                            <a href="#" class="btn btn-sm btn-outline-primary">Ver detalle</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Sección de mapa interactivo -->
+<section class="map-section py-5 bg-light">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="display-4 mb-3">Zona de Aplicación</h2>
+            <p class="lead">El plan se aplica en las comunas de Concón, Quinteros y Puchuncaví</p>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="map-container ratio ratio-21x9 shadow">
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d106895.27883286206!2d-71.5424399291992!3d-32.85000000000001!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9689d84a5cd8ba7b%3A0x8d5a7d7f637976ac!2sPuchuncav%C3%AD%2C%20Valpara%C3%ADso!5e0!3m2!1ses!2scl!4v1649087940000!5m2!1ses!2scl"
+                            allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Llamado a la acción -->
+<section class="cta-section py-5 text-white" style="background: linear-gradient(to right, #005f73, #0a9396);">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8 mb-4 mb-lg-0">
+                <h2 class="display-5 mb-3">Participemos juntos en este desafío</h2>
+                <p class="lead mb-0">Tu aporte es fundamental para lograr un ambiente más limpio y saludable para todos.</p>
+            </div>
+            <div class="col-lg-4 text-lg-end">
+                <a href="#" class="btn btn-light btn-lg px-4">Conoce más</a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+<!-- Añadir una sección de acceso rápido -->
+<section class="quick-access py-5">
+    <div class="container">
+        <h2 class="mb-4">Acceso Rápido</h2>
+
+        <div class="row">
+            {% if user.is_authenticated %}
+                {% if user.is_superadmin or user.is_admin_sma %}
+                <!-- Enlaces para administradores -->
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">Administración</h5>
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item"><a href="{% url 'dashboard_sma' %}">Dashboard SMA</a></li>
+                                <li class="list-group-item"><a href="{% url 'admin:index' %}">Admin de Django</a></li>
+                                <li class="list-group-item"><a href="{% url 'dashboard_interactivo' %}">Dashboard Interactivo</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">Reportes</h5>
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item"><a href="{% url 'reporte_avance_global' %}">Reporte de Avance Global</a></li>
+                                <li class="list-group-item"><a href="{% url 'api-root' %}">API REST</a></li>
+                                <li class="list-group-item"><a href="{% url 'swagger-ui' %}">Documentación API</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">Gestión</h5>
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item"><a href="/admin/medidas/medida/">Gestionar Medidas</a></li>
+                                <li class="list-group-item"><a href="/admin/organismos/organismo/">Gestionar Organismos</a></li>
+                                <li class="list-group-item"><a href="/admin/usuarios/usuario/">Gestionar Usuarios</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                {% elif user.is_organismo %}
+                <!-- Enlaces para usuarios de organismos -->
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">Mi Organismo</h5>
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item"><a href="{% url 'reporte_mi_organismo' %}">Reporte de Avance</a></li>
+                                <li class="list-group-item"><a href="{% url 'registrar_avance' %}">Registrar Avance</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">Mis Medidas</h5>
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item"><a href="#">Medidas Asignadas</a></li>
+                                <li class="list-group-item"><a href="#">Pendientes</a></li>
+                                <li class="list-group-item"><a href="#">Completadas</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Enlaces comunes para todos los usuarios autenticados -->
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">Mi Cuenta</h5>
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item"><a href="{% url 'password_change' %}">Cambiar Contraseña</a></li>
+                                <li class="list-group-item"><a href="{% url 'logout' %}">Cerrar Sesión</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <!-- Enlaces para usuarios no autenticados -->
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">Acceso al Sistema</h5>
+                            <p class="card-text">Para ver información detallada y acceder a todas las funcionalidades, inicie sesión.</p>
+                            <a href="{% url 'login' %}" class="btn btn-primary">Iniciar Sesión</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">Información Pública</h5>
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item"><a href="#avance">Ver Avance del Plan</a></li>
+                                <li class="list-group-item"><a href="#componentes">Componentes del Plan</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">Documentación</h5>
+                            <p class="card-text">Descargue documentos públicos relacionados con el Plan de Descontaminación.</p>
+                            <a href="#" class="btn btn-outline-primary">Ver Documentos</a>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Gráfico de avance por componente
+const ctxComponentes = document.getElementById('componentesChart').getContext('2d');
+new Chart(ctxComponentes, {
+    type: 'bar',
+    data: {
+        labels: [{% for componente in componentes %}'{{ componente.nombre }}',{% endfor %}],
+        datasets: [{
+            label: 'Porcentaje de Avance',
+            data: [{% for componente in componentes %}{{ componente.avance_promedio|default:0|floatformat:1 }},{% endfor %}],
+            backgroundColor: [{% for componente in componentes %}'{{ componente.color|default:"#38b000" }}',{% endfor %}],
+            borderWidth: 0,
+            borderRadius: 4,
+            maxBarThickness: 50
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                max: 100,
+                grid: {
+                    drawBorder: false
+                },
+                ticks: {
+                    callback: function(value) {
+                        return value + '%';
+                    }
+                }
+            },
+            x: {
+                grid: {
+                    display: false
+                }
+            }
+        }
+    }
+});
+
+// Animación scroll suave para anclas
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        document.querySelector(this.getAttribute('href')).scrollIntoView({
+            behavior: 'smooth'
+        });
+    });
+});
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Estilos para el círculo de progreso */
+.circular-chart {
+    width: 100%;
+    height: auto;
+}
+.circle-bg {
+    stroke-width: 2.5;
+}
+.circle {
+    stroke: #38b000;
+    fill: none;
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    animation: progress-circle 1.5s ease-out forwards;
+}
+.percentage {
+    fill: #333;
+    font-family: sans-serif;
+    font-size: 0.5em;
+    font-weight: bold;
+    text-anchor: middle;
+}
+
+@keyframes progress-circle {
+    0% {
+        stroke-dasharray: 0 100;
+    }
+}
+
+/* Estilos para las tarjetas de componentes */
+.component-card {
+    transition: transform 0.3s ease;
+}
+.component-card:hover {
+    transform: translateY(-5px);
+}
+
+/* Estilos para el indicador de scroll */
+.scroll-indicator {
+    animation: bounce 1.5s infinite alternate;
+}
+@keyframes bounce {
+    from {
+        transform: translateY(0) translateX(-50%);
+    }
+    to {
+        transform: translateY(-20px) translateX(-50%);
+    }
+}
+</style>
+{% endblock %}

@@ -1,0 +1,6 @@
+/* Ajustar el tamaño del logo en el panel de administración */
+#header-logo img {
+    max-width: 150px;
+    max-height: 100px;
+    object-fit: contain;
+}

@@ -1,0 +1,674 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard Interactivo{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="mb-4">Dashboard Interactivo</h1>
+
+    <!-- Filtros -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3 mb-3">
+                    <label for="filtro-componente" class="form-label">Componente</label>
+                    <select id="filtro-componente" class="form-select">
+                        <option value="">Todos los componentes</option>
+                        <!-- Se llenará con JavaScript -->
+                    </select>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label for="filtro-estado" class="form-label">Estado</label>
+                    <select id="filtro-estado" class="form-select">
+                        <option value="">Todos los estados</option>
+                        <option value="pendiente">Pendiente</option>
+                        <option value="en_proceso">En Proceso</option>
+                        <option value="completada">Completada</option>
+                        <option value="retrasada">Retrasada</option>
+                    </select>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label for="filtro-organismo" class="form-label">Organismo</label>
+                    <select id="filtro-organismo" class="form-select">
+                        <option value="">Todos los organismos</option>
+                        <!-- Se llenará con JavaScript -->
+                    </select>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label for="filtro-avance" class="form-label">Avance Mínimo</label>
+                    <input type="range" class="form-range" id="filtro-avance" min="0" max="100" value="0">
+                    <div class="text-center" id="valor-avance">0%</div>
+                </div>
+            </div>
+            <div class="d-flex justify-content-end">
+                <button id="btn-aplicar-filtros" class="btn btn-primary">Aplicar Filtros</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráficos y KPIs -->
+    <div class="row">
+        <!-- KPIs -->
+        <div class="col-md-3 mb-4">
+            <div class="row">
+                <div class="col-12 mb-4">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <h5 class="card-title text-muted mb-1">Avance Global</h5>
+                            <p class="display-4 mb-0" id="kpi-avance-global">-</p>
+                            <div class="progress mt-2">
+                                <div class="progress-bar" id="progress-avance-global" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 mb-4">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <h5 class="card-title text-muted mb-1">Total Medidas</h5>
+                            <p class="display-4 mb-0" id="kpi-total-medidas">-</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 mb-4">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <h5 class="card-title text-muted mb-1">Medidas Completadas</h5>
+                            <p class="display-4 mb-0" id="kpi-medidas-completadas">-</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráficos -->
+        <div class="col-md-9 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <ul class="nav nav-tabs card-header-tabs" id="chart-tabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="component-tab" data-bs-toggle="tab" data-bs-target="#component-tab-pane" type="button" role="tab" aria-controls="component-tab-pane" aria-selected="true">Por Componente</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="estado-tab" data-bs-toggle="tab" data-bs-target="#estado-tab-pane" type="button" role="tab" aria-controls="estado-tab-pane" aria-selected="false">Por Estado</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="organismo-tab" data-bs-toggle="tab" data-bs-target="#organismo-tab-pane" type="button" role="tab" aria-controls="organismo-tab-pane" aria-selected="false">Por Organismo</button>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-body">
+                    <div class="tab-content" id="chart-tabs-content">
+                        <div class="tab-pane fade show active" id="component-tab-pane" role="tabpanel" aria-labelledby="component-tab" tabindex="0">
+                            <canvas id="componentesChart" height="300"></canvas>
+                        </div>
+                        <div class="tab-pane fade" id="estado-tab-pane" role="tabpanel" aria-labelledby="estado-tab" tabindex="0">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <canvas id="estadosChart" height="300"></canvas>
+                                </div>
+                                <div class="col-md-6">
+                                    <canvas id="estadosBarChart" height="300"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="organismo-tab-pane" role="tabpanel" aria-labelledby="organismo-tab" tabindex="0">
+                            <canvas id="organismosChart" height="300"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de medidas -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Listado de Medidas</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped" id="tabla-medidas">
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Nombre</th>
+                            <th>Componente</th>
+                            <th>Estado</th>
+                            <th>Avance</th>
+                            <th>Fecha Término</th>
+                            <th>Organismos</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Se llenará con JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Charts
+let componentesChart, estadosChart, estadosBarChart, organismosChart;
+
+// Datos
+let medidas = [];
+let componentes = [];
+let organismos = [];
+
+// Inicializar la página
+document.addEventListener('DOMContentLoaded', function() {
+    // Cargar datos iniciales
+    cargarDatos();
+
+    // Configurar eventos
+    document.getElementById('btn-aplicar-filtros').addEventListener('click', aplicarFiltros);
+    document.getElementById('filtro-avance').addEventListener('input', function() {
+        document.getElementById('valor-avance').textContent = this.value + '%';
+    });
+});
+
+// Función para cargar datos desde la API
+function cargarDatos() {
+    // Cargar componentes
+    fetch('/api/componentes/')
+        .then(response => response.json())
+        .then(data => {
+            componentes = data.results || data;
+            llenarSelectComponentes();
+        });
+
+    // Cargar organismos
+    fetch('/api/organismos/')
+        .then(response => response.json())
+        .then(data => {
+            organismos = data.results || data;
+            llenarSelectOrganismos();
+        });
+
+    // Cargar medidas
+    fetch('/api/medidas/')
+        .then(response => response.json())
+        .then(data => {
+            medidas = data.results || data;
+            actualizarDashboard(medidas);
+        });
+}
+
+// Llenar selects con datos
+function llenarSelectComponentes() {
+    const select = document.getElementById('filtro-componente');
+    select.innerHTML = '<option value="">Todos los componentes</option>';
+
+    componentes.forEach(componente => {
+        const option = document.createElement('option');
+        option.value = componente.id;
+        option.textContent = componente.nombre;
+        select.appendChild(option);
+    });
+}
+
+function llenarSelectOrganismos() {
+    const select = document.getElementById('filtro-organismo');
+    select.innerHTML = '<option value="">Todos los organismos</option>';
+
+    organismos.forEach(organismo => {
+        const option = document.createElement('option');
+        option.value = organismo.id;
+        option.textContent = organismo.nombre;
+        select.appendChild(option);
+    });
+}
+
+// Función para aplicar filtros
+function aplicarFiltros() {
+    const componenteId = document.getElementById('filtro-componente').value;
+    const estado = document.getElementById('filtro-estado').value;
+    const organismoId = document.getElementById('filtro-organismo').value;
+    const avanceMinimo = document.getElementById('filtro-avance').value;
+
+    // Construir URL con filtros
+    let url = '/api/medidas/?';
+    if (componenteId) url += `componente=${componenteId}&`;
+    if (estado) url += `estado=${estado}&`;
+    if (organismoId) url += `organismo=${organismoId}&`;
+    if (avanceMinimo > 0) url += `avance_min=${avanceMinimo}&`;
+
+    // Cargar datos filtrados
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            const medidasFiltradas = data.results || data;
+            actualizarDashboard(medidasFiltradas);
+        });
+}
+
+// Función para actualizar el dashboard con los datos filtrados
+function actualizarDashboard(medidasFiltradas) {
+    // Actualizar KPIs
+    actualizarKPIs(medidasFiltradas);
+
+    // Actualizar gráficos
+    actualizarGraficos(medidasFiltradas);
+
+    // Actualizar tabla
+    actualizarTablaMedidas(medidasFiltradas);
+}
+
+// Actualizar indicadores clave (KPIs)
+function actualizarKPIs(medidas) {
+    // Total de medidas
+    document.getElementById('kpi-total-medidas').textContent = medidas.length;
+
+    // Medidas completadas
+    const completadas = medidas.filter(m => m.estado === 'completada').length;
+    document.getElementById('kpi-medidas-completadas').textContent = completadas;
+
+    // Avance global
+    const avanceTotal = medidas.reduce((sum, m) => sum + (m.porcentaje_avance || 0), 0);
+    const avancePromedio = medidas.length > 0 ? (avanceTotal / medidas.length).toFixed(1) : '0.0';
+    document.getElementById('kpi-avance-global').textContent = avancePromedio + '%';
+
+    // Actualizar barra de progreso
+    const progressBar = document.getElementById('progress-avance-global');
+    progressBar.style.width = avancePromedio + '%';
+    progressBar.setAttribute('aria-valuenow', avancePromedio);
+}
+
+// Actualizar gráficos con datos filtrados
+function actualizarGraficos(medidas) {
+    // Datos para gráfico de componentes
+    const componentesData = prepararDatosComponentes(medidas);
+    actualizarGraficoComponentes(componentesData);
+
+    // Datos para gráfico de estados
+    const estadosData = prepararDatosEstados(medidas);
+    actualizarGraficoEstados(estadosData);
+
+    // Datos para gráfico de organismos
+    const organismosData = prepararDatosOrganismos(medidas);
+    actualizarGraficoOrganismos(organismosData);
+}
+
+// Preparar datos para los gráficos
+function prepararDatosComponentes(medidas) {
+    // Agrupar medidas por componente
+    const componentesMap = new Map();
+
+    medidas.forEach(medida => {
+        const componenteId = medida.componente;
+        const componente = componentes.find(c => c.id === componenteId);
+
+        if (componente) {
+            if (!componentesMap.has(componenteId)) {
+                componentesMap.set(componenteId, {
+                    nombre: componente.nombre,
+                    color: componente.color || '#007bff',
+                    total: 0,
+                    avanceTotal: 0
+                });
+            }
+
+            const item = componentesMap.get(componenteId);
+            item.total++;
+            item.avanceTotal += medida.porcentaje_avance || 0;
+        }
+    });
+
+    // Calcular promedio y preparar datos para el gráfico
+    const result = [];
+    componentesMap.forEach((value, key) => {
+        const avancePromedio = value.total > 0 ? value.avanceTotal / value.total : 0;
+        result.push({
+            id: key,
+            nombre: value.nombre,
+            color: value.color,
+            total: value.total,
+            avance: avancePromedio.toFixed(1)
+        });
+    });
+
+    return result;
+}
+
+function prepararDatosEstados(medidas) {
+    // Mapeo de estados a nombres más amigables
+    const estadosNombres = {
+        'pendiente': 'Pendiente',
+        'en_proceso': 'En Proceso',
+        'completada': 'Completada',
+        'retrasada': 'Retrasada',
+        'suspendida': 'Suspendida'
+    };
+
+    // Mapeo de estados a colores
+    const estadosColores = {
+        'pendiente': '#ffc107',
+        'en_proceso': '#007bff',
+        'completada': '#28a745',
+        'retrasada': '#dc3545',
+        'suspendida': '#6c757d'
+    };
+
+    // Contar medidas por estado
+    const estadosCount = {};
+    const estadosAvg = {};
+
+    medidas.forEach(medida => {
+        const estado = medida.estado || 'pendiente';
+        estadosCount[estado] = (estadosCount[estado] || 0) + 1;
+        estadosAvg[estado] = estadosAvg[estado] || { total: 0, count: 0 };
+        estadosAvg[estado].total += medida.porcentaje_avance || 0;
+        estadosAvg[estado].count++;
+    });
+
+    // Preparar datos para el gráfico
+    const labels = [];
+    const data = [];
+    const colors = [];
+    const avances = [];
+
+    Object.keys(estadosNombres).forEach(estado => {
+        if (estadosCount[estado]) {
+            labels.push(estadosNombres[estado]);
+            data.push(estadosCount[estado]);
+            colors.push(estadosColores[estado]);
+
+            // Calcular avance promedio por estado
+            const avg = estadosAvg[estado].count > 0 ?
+                (estadosAvg[estado].total / estadosAvg[estado].count) : 0;
+            avances.push(avg.toFixed(1));
+        }
+    });
+
+    return { labels, data, colors, avances };
+}
+
+function prepararDatosOrganismos(medidas) {
+    // Crear mapa para contar medidas y sumar avance por organismo
+    const organismoMap = new Map();
+
+    // Primero, inicializar el mapa con todos los organismos
+    organismos.forEach(org => {
+        organismoMap.set(org.id, {
+            nombre: org.nombre,
+            total: 0,
+            avanceTotal: 0
+        });
+    });
+
+    // Contar medidas por organismo
+    medidas.forEach(medida => {
+        // En este ejemplo, asumimos que tienes la información de organismos
+        // Si no la tienes disponible en los datos de medidas, necesitarás hacer una consulta adicional
+        if (medida.responsables) {
+            medida.responsables.forEach(orgId => {
+                if (organismoMap.has(orgId)) {
+                    const org = organismoMap.get(orgId);
+                    org.total++;
+                    org.avanceTotal += medida.porcentaje_avance || 0;
+                }
+            });
+        }
+    });
+
+    // Filtrar organismos sin medidas y calcular avance promedio
+    const result = [];
+    organismoMap.forEach((value, key) => {
+        if (value.total > 0) {
+            const avancePromedio = value.avanceTotal / value.total;
+            result.push({
+                id: key,
+                nombre: value.nombre,
+                total: value.total,
+                avance: avancePromedio.toFixed(1)
+            });
+        }
+    });
+
+    // Ordenar por número de medidas, descendente
+    return result.sort((a, b) => b.total - a.total).slice(0, 10); // Top 10
+}
+
+// Actualizar cada gráfico con los nuevos datos
+function actualizarGraficoComponentes(data) {
+    const labels = data.map(item => item.nombre);
+    const values = data.map(item => parseFloat(item.avance));
+    const colors = data.map(item => item.color);
+
+    if (componentesChart) {
+        componentesChart.data.labels = labels;
+        componentesChart.data.datasets[0].data = values;
+        componentesChart.data.datasets[0].backgroundColor = colors;
+        componentesChart.update();
+    } else {
+        const ctx = document.getElementById('componentesChart').getContext('2d');
+        componentesChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Avance (%)',
+                    data: values,
+                    backgroundColor: colors,
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: {
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+}
+
+function actualizarGraficoEstados(data) {
+    // Gráfico de torta para distribución de estados
+    if (estadosChart) {
+        estadosChart.data.labels = data.labels;
+        estadosChart.data.datasets[0].data = data.data;
+        estadosChart.data.datasets[0].backgroundColor = data.colors;
+        estadosChart.update();
+    } else {
+        const ctx = document.getElementById('estadosChart').getContext('2d');
+        estadosChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: data.labels,
+                datasets: [{
+                    data: data.data,
+                    backgroundColor: data.colors,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right'
+                    }
+                }
+            }
+        });
+    }
+
+    // Gráfico de barras para avance por estado
+    if (estadosBarChart) {
+        estadosBarChart.data.labels = data.labels;
+        estadosBarChart.data.datasets[0].data = data.avances;
+        estadosBarChart.data.datasets[0].backgroundColor = data.colors;
+        estadosBarChart.update();
+    } else {
+        const ctx = document.getElementById('estadosBarChart').getContext('2d');
+        estadosBarChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: data.labels,
+                datasets: [{
+                    label: 'Avance Promedio (%)',
+                    data: data.avances,
+                    backgroundColor: data.colors,
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: {
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+}
+
+function actualizarGraficoOrganismos(data) {
+    const labels = data.map(item => item.nombre);
+    const values = data.map(item => parseFloat(item.avance));
+
+    if (organismosChart) {
+        organismosChart.data.labels = labels;
+        organismosChart.data.datasets[0].data = values;
+        organismosChart.update();
+    } else {
+        const ctx = document.getElementById('organismosChart').getContext('2d');
+        organismosChart = new Chart(ctx, {
+            type: 'horizontalBar', // o 'bar' en Chart.js más recientes
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Avance Promedio (%)',
+                    data: values,
+                    backgroundColor: '#4e73df',
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: {
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+}
+
+// Actualizar tabla de medidas
+function actualizarTablaMedidas(medidas) {
+    const tbody = document.querySelector('#tabla-medidas tbody');
+    tbody.innerHTML = '';
+
+    // Limitar a 50 medidas para no sobrecargar la tabla
+    const medidasMostradas = medidas.slice(0, 50);
+
+    medidasMostradas.forEach(medida => {
+        const fila = document.createElement('tr');
+
+        // Encontrar nombre del componente
+        const componente = componentes.find(c => c.id === medida.componente);
+        const componenteNombre = componente ? componente.nombre : 'Desconocido';
+
+        // Fecha formateada
+        const fechaTermino = new Date(medida.fecha_termino).toLocaleDateString();
+
+        // Estado formateado
+        const estadoClases = {
+            'pendiente': 'bg-warning',
+            'en_proceso': 'bg-primary',
+            'completada': 'bg-success',
+            'retrasada': 'bg-danger',
+            'suspendida': 'bg-secondary'
+        };
+        const estadoClase = estadoClases[medida.estado] || 'bg-secondary';
+        const estadoTexto = medida.estado.replace('_', ' ').charAt(0).toUpperCase() + medida.estado.replace('_', ' ').slice(1);
+
+        // Crear contenido de la fila
+        fila.innerHTML = `
+            <td>${medida.codigo}</td>
+            <td>${medida.nombre}</td>
+            <td>${componenteNombre}</td>
+            <td><span class="badge ${estadoClase}">${estadoTexto}</span></td>
+            <td>
+                <div class="progress">
+                    <div class="progress-bar" role="progressbar" style="width: ${medida.porcentaje_avance || 0}%;"
+                        aria-valuenow="${medida.porcentaje_avance || 0}" aria-valuemin="0" aria-valuemax="100">
+                        ${medida.porcentaje_avance || 0}%
+                    </div>
+                </div>
+            </td>
+            <td>${fechaTermino}</td>
+            <td>
+                <!-- Aquí iría la lista de organismos si está disponible -->
+                <span class="badge bg-info">Múltiples</span>
+            </td>
+            <td>
+                <a href="/medidas/${medida.id}/" class="btn btn-sm btn-outline-primary">Ver</a>
+            </td>
+        `;
+
+        tbody.appendChild(fila);
+    });
+
+    // Si hay más medidas que no se muestran
+    if (medidas.length > 50) {
+        const fila = document.createElement('tr');
+        fila.innerHTML = `
+            <td colspan="8" class="text-center">
+                <em>Se muestran 50 de ${medidas.length} medidas. Aplique filtros para refinar los resultados.</em>
+            </td>
+        `;
+        tbody.appendChild(fila);
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,129 @@
+{% extends "rest_framework/base.html" %}
+{% load static %}
+
+{% block title %}SMA Monitor API{% endblock %}
+
+{% block branding %}
+  <div class="navbar-brand" style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+    <div style="display: flex; align-items: center;">
+      <img id="logo" src="{% static 'images/logo_ppda.png' %}" alt="Logo SMA" height="45" style="margin-right: 12px;">
+      <h1 style="margin: 0; font-size: 22px; font-weight: 600;">SMA Monitor API</h1>
+    </div>
+    <button id="theme-toggle" class="btn btn-sm" style="border-radius: 8px; padding: 5px 10px;">🌙</button>
+  </div>
+{% endblock %}
+
+{% block style %}
+  {{ block.super }}
+  <style>
+    :root {
+      --bg-color: #f8f9fa;
+      --text-color: #2c3e50;
+      --card-bg: #ffffff;
+      --btn-bg: #0a3d62;
+      --btn-hover: #074173;
+      --footer-color: #868e96;
+    }
+
+    [data-theme="dark"] {
+      --bg-color: #121212;
+      --text-color: #f1f1f1;
+      --card-bg: #1e1e1e;
+      --btn-bg: #4361ee;
+      --btn-hover: #3a0ca3;
+      --footer-color: #aaaaaa;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      transition: all 0.3s ease-in-out;
+    }
+
+    .navbar {
+      background-color: var(--card-bg);
+      border-bottom: 1px solid #dee2e6;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .content {
+      max-width: 1000px;
+      margin: 40px auto;
+      padding: 30px;
+      background-color: var(--card-bg);
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+    }
+
+    h2, h3 {
+      color: var(--text-color);
+    }
+
+    .btn {
+      background-color: var(--btn-bg);
+      border-color: var(--btn-bg);
+      color: #fff;
+      font-weight: 500;
+    }
+
+    .btn:hover {
+      background-color: var(--btn-hover);
+      border-color: var(--btn-hover);
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 40px;
+      font-size: 14px;
+      color: var(--footer-color);
+    }
+
+    .login-form label {
+      font-weight: 600;
+    }
+
+    /* 🔄 Logo Animation */
+    #logo {
+      transition: transform 0.9s ease-in-out;
+    }
+
+    #logo:hover {
+      transform: rotate(10deg) scale(1.05);
+    }
+  </style>
+{% endblock %}
+
+{% block script %}
+  {{ block.super }}
+  <script>
+    // 🌙 Toggle Modo Claro/Oscuro
+    const toggleBtn = document.getElementById('theme-toggle');
+    const htmlTag = document.documentElement;
+
+    // Cargar tema desde localStorage
+    const currentTheme = localStorage.getItem('theme');
+    if (currentTheme === 'dark') {
+      htmlTag.setAttribute('data-theme', 'dark');
+      toggleBtn.innerText = '☀️';
+    }
+
+    toggleBtn.addEventListener('click', () => {
+      if (htmlTag.getAttribute('data-theme') === 'dark') {
+        htmlTag.removeAttribute('data-theme');
+        toggleBtn.innerText = '🌙';
+        localStorage.setItem('theme', 'light');
+      } else {
+        htmlTag.setAttribute('data-theme', 'dark');
+        toggleBtn.innerText = '☀️';
+        localStorage.setItem('theme', 'dark');
+      }
+    });
+  </script>
+{% endblock %}
+
+{% block footer %}
+  <div class="footer">
+    <p>© {{ now|date:"Y" }} Superintendencia del Medio Ambiente - Plataforma de Monitoreo</p>
+  </div>
+{% endblock %}

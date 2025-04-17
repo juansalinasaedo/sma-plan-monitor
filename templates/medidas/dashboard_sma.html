@@ -1,0 +1,195 @@
+<!-- templates/medidas/dashboard_sma.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard SMA{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <h1 class="dashboard-title">Dashboard Plan de Descontaminación</h1>
+
+    <!-- Resumen en tarjetas -->
+    <div class="stats-cards">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Total Medidas</h5>
+                <p class="card-value">{{ total_medidas }}</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Completadas</h5>
+                <p class="card-value text-success">{{ total_completadas }}</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">En Proceso</h5>
+                <p class="card-value text-primary">{{ total_en_proceso }}</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Retrasadas</h5>
+                <p class="card-value text-danger">{{ total_retrasadas }}</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Avance Global</h5>
+                <div class="progress">
+                    <div class="progress-bar" role="progressbar" style="width: {{ avance_global }}%;"
+                        aria-valuenow="{{ avance_global }}" aria-valuemin="0" aria-valuemax="100">
+                        {{ avance_global|floatformat:1 }}%
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Avance por componente -->
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Avance por Componente</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="componentesChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Organismos con más medidas</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Organismo</th>
+                                <th>Medidas Asignadas</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for organismo in organismos_top %}
+                            <tr>
+                                <td>{{ organismo.nombre }}</td>
+                                <td>{{ organismo.total_medidas }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Medidas próximas a vencer -->
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5>Medidas próximas a vencer (próximos 30 días)</h5>
+        </div>
+        <div class="card-body">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Código</th>
+                        <th>Medida</th>
+                        <th>Componente</th>
+                        <th>Fecha Término</th>
+                        <th>Avance</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for medida in medidas_proximas %}
+                    <tr>
+                        <td>{{ medida.codigo }}</td>
+                        <td>{{ medida.nombre }}</td>
+                        <td>{{ medida.componente.nombre }}</td>
+                        <td>{{ medida.fecha_termino }}</td>
+                        <td>
+                            <div class="progress">
+                                <div class="progress-bar" role="progressbar"
+                                     style="width: {{ medida.porcentaje_avance }}%;"
+                                     aria-valuenow="{{ medida.porcentaje_avance }}"
+                                     aria-valuemin="0" aria-valuemax="100">
+                                    {{ medida.porcentaje_avance|floatformat:1 }}%
+                                </div>
+                            </div>
+                        </td>
+                        <td>{{ medida.get_estado_display }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Avances recientes -->
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5>Avances Recientes</h5>
+        </div>
+        <div class="card-body">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Medida</th>
+                        <th>Organismo</th>
+                        <th>Avance</th>
+                        <th>Registrado por</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for avance in avances_recientes %}
+                    <tr>
+                        <td>{{ avance.fecha_registro }}</td>
+                        <td>{{ avance.medida.codigo }} - {{ avance.medida.nombre }}</td>
+                        <td>{{ avance.organismo.nombre }}</td>
+                        <td>{{ avance.porcentaje_avance }}%</td>
+                        <td>{{ avance.created_by.get_full_name }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Gráfico de avance por componente
+const ctx = document.getElementById('componentesChart').getContext('2d');
+const componentesChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: [{% for componente in componentes %}'{{ componente.nombre }}',{% endfor %}],
+        datasets: [{
+            label: 'Porcentaje de Avance',
+            data: [{% for componente in componentes %}{{ componente.avance_promedio|default:0|floatformat:1 }},{% endfor %}],
+            backgroundColor: [{% for componente in componentes %}'{{ componente.color|default:"#007bff" }}',{% endfor %}],
+        }]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            y: {
+                beginAtZero: true,
+                max: 100
+            }
+        }
+    }
+});
+</script>
+{% endblock %}
